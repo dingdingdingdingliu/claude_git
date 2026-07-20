@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git 白話圖文｜用講的就會，不用打指令</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: #f4f6fb; color: #2c3140; line-height: 1.8; font-size: 17px;
+    padding: 32px 16px 80px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  /* 標題（壓扁） */
+  .hero {
+    text-align: center; padding: 22px 24px; color: #fff; border-radius: 22px;
+    background: linear-gradient(135deg, #5b7cfa 0%, #7d5bfa 100%);
+    margin-bottom: 18px; box-shadow: 0 10px 30px rgba(91,124,250,.25);
+  }
+  .hero .big-emoji { font-size: 34px; display: block; margin-bottom: 2px; line-height: 1.2; }
+  .hero h1 { font-size: 28px; margin-bottom: 4px; line-height: 1.35; }
+  .hero p { font-size: 17px; opacity: .93; line-height: 1.5; }
+  .hero .badge {
+    display: inline-block; margin-top: 10px; font-size: 15px;
+    background: rgba(255,255,255,.2); padding: 5px 16px; border-radius: 999px;
+  }
+
+  /* 分頁 */
+  .tabs { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+  .tabs button {
+    flex: 1; min-width: 200px; cursor: pointer; text-align: center;
+    background: #fff; border: 1.5px solid #e2e6f2; border-radius: 15px;
+    padding: 14px 16px; font-family: inherit; color: #6c7285; line-height: 1.5;
+    transition: .15s;
+  }
+  .tabs button .t1 { display: block; font-size: 18px; font-weight: 700; }
+  .tabs button .t2 { display: block; font-size: 14.5px; opacity: .85; }
+  .tabs button:hover { border-color: #b9c6f5; }
+  .tabs button.on {
+    background: #5b7cfa; border-color: #5b7cfa; color: #fff;
+    box-shadow: 0 6px 16px rgba(91,124,250,.28);
+  }
+  .panel { display: none; }
+  .panel.on { display: block; }
+
+  /* 卡片 */
+  .card {
+    background: #fff; border-radius: 20px; padding: 26px;
+    margin-bottom: 22px; box-shadow: 0 4px 20px rgba(60,70,120,.06);
+  }
+  .card h2 { font-size: 22px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+  .card .ico {
+    width: 46px; height: 46px; flex: none; border-radius: 13px;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 25px;
+  }
+  .ico.orange { background: #fff2df; }
+  .ico.green { background: #e6f8ef; }
+  .ico.blue { background: #eaf0ff; }
+  .ico.purple { background: #f3eeff; }
+
+  .keypoint {
+    background: #fff8e6; border-left: 4px solid #f5b93c;
+    padding: 14px 18px; border-radius: 10px; font-size: 17.5px;
+  }
+  .keypoint b { color: #c47f00; }
+
+  /* 你說→Claude做 */
+  .flow1 {
+    display: flex; align-items: center; justify-content: center; gap: 18px;
+    margin-top: 18px; flex-wrap: wrap;
+  }
+  .flow1 .node { text-align: center; font-size: 16px; color: #4a5064; }
+  .flow1 .node .em { font-size: 48px; display: block; }
+  .flow1 .node b { color: #8a5a13; }
+  .flow1 .to { font-size: 30px; color: #c9b184; }
+
+  /* 比喻圖卡 */
+  .acards { display: flex; gap: 14px; flex-wrap: wrap; }
+  .acard { flex: 1; min-width: 210px; border-radius: 16px; padding: 20px 18px; text-align: center; }
+  .acard.game { background: #eef3ff; border: 1.5px solid #d3ddff; }
+  .acard.file { background: #e9f8f0; border: 1.5px solid #c6ebd6; }
+  .acard .big { font-size: 50px; display: block; margin-bottom: 6px; }
+  .acard .lab { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
+  .acard.game .lab { color: #4a68e0; }
+  .acard.file .lab { color: #1f8a56; }
+  .acard .mini { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px; }
+  .acard .flag { font-size: 28px; }
+  .acard .chip { font-size: 15px; font-weight: 700; border-radius: 8px; padding: 3px 10px; }
+  .acard.game .chip { background: #dbe4ff; color: #4a68e0; }
+  .acard.file .chip { background: #d3edde; color: #1f8a56; }
+  .acard .dash { color: #b7c2e6; }
+  .acard .note { font-size: 15px; color: #6c7285; }
+
+  .rollback {
+    display: flex; align-items: center; gap: 10px; margin-top: 16px;
+    background: #fff8e6; border: 1.5px solid #f3dfa6; border-radius: 13px;
+    padding: 13px 16px; font-size: 17px; color: #a4700c;
+  }
+  .rollback .r { font-size: 28px; flex: none; }
+  .rollback b { color: #c47f00; }
+
+  /* 實際情境三步驟 */
+  .story { display: flex; flex-direction: column; align-items: stretch; }
+  .story .step {
+    display: flex; align-items: center; gap: 14px;
+    border-radius: 14px; padding: 14px 16px; border: 1.5px solid;
+  }
+  .story .step.ok { background: #e9f8f0; border-color: #c6ebd6; }
+  .story .step.edit { background: #eef3ff; border-color: #d3ddff; }
+  .story .step.bad { background: #fff4f0; border-color: #fbd6c8; }
+  .story .step .e { font-size: 34px; flex: none; }
+  .story .step .t { flex: 1; line-height: 1.5; }
+  .story .step .t b { display: block; font-size: 17px; }
+  .story .step .t span { font-size: 14.5px; color: #6c7285; }
+  .story .step .ver {
+    flex: none; font-size: 15px; font-weight: 700; border-radius: 9px; padding: 4px 12px;
+  }
+  .story .step.ok .ver { background: #d3edde; color: #1f8a56; }
+  .story .step.edit .ver { background: #dbe4ff; color: #4a68e0; }
+  .story .step.bad .ver { background: #fbdccf; color: #b1532b; }
+  .story .down { text-align: center; font-size: 22px; color: #b7c2e6; line-height: 1.4; }
+
+  .fixline {
+    display: flex; align-items: center; gap: 12px; margin-top: 16px;
+    background: #e9f8f0; border: 1.5px solid #bfe9d1; border-radius: 14px;
+    padding: 15px 17px; font-size: 17px; color: #1f8a56;
+  }
+  .fixline .r { font-size: 30px; flex: none; }
+  .fixline b { color: #148a52; }
+
+  /* 話術卡 */
+  .bubble {
+    background: #f0f4ff; border: 1.5px solid #d4deff; border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .bubble .txt { font-size: 17px; }
+  .bubble .txt .lead { font-size: 26px; margin-right: 8px; vertical-align: middle; }
+  .bubble .txt .say { color: #2b3552; font-weight: 600; }
+  .bubble .txt .hint { display: block; font-size: 14.5px; color: #8a90a2; margin-top: 3px; margin-left: 36px; }
+  .bubble button {
+    background: #5b7cfa; color: #fff; border: none; border-radius: 9px;
+    padding: 9px 17px; font-size: 15px; cursor: pointer; flex: none; font-family: inherit;
+  }
+  .bubble button:active { background: #4a68e0; }
+
+  .tip {
+    font-size: 16px; color: #6c7285; margin-top: 6px;
+    background: #f7f8fc; border-radius: 11px; padding: 12px 15px;
+  }
+  .tip b { color: #5b7cfa; }
+
+  /* 換頁引導 */
+  .next {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: #f3eeff; border: 1.5px dashed #d5c4ff; border-radius: 16px;
+    padding: 18px 20px; margin-bottom: 22px;
+  }
+  .next .l { font-size: 17px; color: #6b46c9; }
+  .next .l .em { font-size: 26px; margin-right: 8px; vertical-align: middle; }
+  .next button {
+    background: #7d5bfa; color: #fff; border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 16px; cursor: pointer; flex: none; font-family: inherit;
+  }
+
+  /* 進階：commit / push 圖卡 */
+  .cp { display: flex; gap: 14px; flex-wrap: wrap; }
+  .cpbox { flex: 1; min-width: 240px; border-radius: 16px; padding: 20px 18px; text-align: center; }
+  .cpbox.c { background: #eef3ff; border: 1.5px solid #d3ddff; }
+  .cpbox.p { background: #f3eeff; border: 1.5px solid #ddccff; }
+  .cpbox .big { font-size: 48px; display: block; margin-bottom: 4px; }
+  .cpbox .word { font-size: 21px; font-weight: 700; letter-spacing: .5px; }
+  .cpbox.c .word { color: #4a68e0; }
+  .cpbox.p .word { color: #7d5bfa; }
+  .cpbox .zh { font-size: 16px; color: #4a5064; margin-bottom: 12px; }
+  .cpbox .viz {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(255,255,255,.75); border-radius: 12px; padding: 12px 8px; margin-bottom: 10px;
+  }
+  .cpbox .viz .u { font-size: 14px; color: #6c7285; text-align: center; }
+  .cpbox .viz .u .e { font-size: 32px; display: block; }
+  .cpbox .viz .ar { font-size: 22px; color: #a9b4d8; }
+  .cpbox .chips { display: flex; gap: 4px; justify-content: center; }
+  .cpbox .chip { font-size: 13.5px; font-weight: 700; border-radius: 7px; padding: 2px 8px; }
+  .cpbox.c .chip { background: #dbe4ff; color: #4a68e0; }
+  .cpbox.p .chip { background: #e6dcff; color: #7d5bfa; }
+  .cpbox .note { font-size: 15px; color: #6c7285; }
+
+  /* 全流程 */
+  .pipe {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    flex-wrap: wrap; background: #f7f9ff; border-radius: 14px; padding: 18px 14px; margin-top: 18px;
+  }
+  .pipe .st { text-align: center; font-size: 15px; color: #4a5064; min-width: 104px; }
+  .pipe .st .e { font-size: 34px; display: block; }
+  .pipe .st b { display: block; font-size: 16px; }
+  .pipe .st.c b { color: #4a68e0; }
+  .pipe .st.p b { color: #7d5bfa; }
+  .pipe .ar { font-size: 24px; color: #b7c2e6; }
+
+  .warn {
+    display: flex; align-items: flex-start; gap: 10px; margin-top: 14px;
+    background: #fff4f0; border: 1.5px solid #fbd6c8; border-radius: 13px;
+    padding: 13px 16px; font-size: 16.5px; color: #b1532b;
+  }
+  .warn .w { font-size: 26px; flex: none; }
+  .warn b { color: #d1502a; }
+
+  /* GitHub 小段 */
+  .supp {
+    background: #fbfbfd; border: 1.5px dashed #d9dded; border-radius: 18px;
+    padding: 22px 24px; margin-bottom: 22px;
+  }
+  .supp h2 { font-size: 19px; color: #6c7285; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .supp .tagline { font-size: 14px; background: #eceef5; color: #7a8296; padding: 3px 10px; border-radius: 999px; }
+  .supp .g-flow { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .supp .g-flow .n { text-align: center; font-size: 16px; color: #5a6072; }
+  .supp .g-flow .n .em { font-size: 44px; display: block; }
+  .supp .g-flow .to { font-size: 26px; color: #b6bdd0; }
+  .supp .g-flow .to small { display: block; font-size: 13px; }
+  .supp p { font-size: 16px; color: #5a6072; }
+  .supp b { color: #414759; }
+
+  footer { text-align: center; color: #a9b0c2; font-size: 15px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="big-emoji">🕰️</span>
+    <h1>Git 是什麼？用講的就會</h1>
+    <p>不用打指令，跟 Claude Code 說中文就好</p>
+  </div>
+
+  <!-- 分頁 -->
+  <div class="tabs">
+    <button id="tab-basic" class="on" onclick="go('basic')">
+      <span class="t1">🌱 初階版</span>
+      <span class="t2">會用就好，不用懂術語</span>
+    </button>
+    <button id="tab-adv" onclick="go('adv')">
+      <span class="t1">🚀 進階版</span>
+      <span class="t2">看懂 commit / push</span>
+    </button>
+  </div>
+
+  <!-- ===== 初階版 ===== -->
+  <div id="panel-basic" class="panel on">
+
+    <div class="card">
+      <h2><span class="ico orange">🤝</span> 先搞懂：你不用自己動手</h2>
+      <div class="keypoint">
+        <b>重點：</b>這篇不是教你打指令。你只要看懂觀念、知道要跟 Claude Code 說什麼，它就會幫你把事情做好。
+      </div>
+      <div class="flow1">
+        <div class="node"><span class="em">🙋‍♀️</span><b>你</b> 說一句</div>
+        <div class="to">➜</div>
+        <div class="node"><span class="em">🤖</span><b>Claude</b> 動手做</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico green">🕰️</span> Git ＝ 專案的「時光機」</h2>
+      <div class="keypoint">
+        每存一次，就多一個「存檔點」；<b>改壞了，隨時整個跳回之前任何一版。</b>
+      </div>
+
+      <div class="acards" style="margin-top:18px;">
+        <div class="acard game">
+          <span class="big">🎮</span>
+          <div class="lab">像打電動存檔</div>
+          <div class="mini"><span class="flag">🚩</span><span class="dash">—</span><span class="flag">🚩</span><span class="dash">—</span><span class="flag">🚩</span></div>
+          <div class="note">過關存一次<br>失敗就讀取回去</div>
+        </div>
+        <div class="acard file">
+          <span class="big">📄</span>
+          <div class="lab">像企劃案另存新檔</div>
+          <div class="mini"><span class="chip">v1</span><span class="dash">—</span><span class="chip">v2</span><span class="dash">—</span><span class="chip">v3</span></div>
+          <div class="note">改壞了<br>打開舊的那版</div>
+        </div>
+      </div>
+
+      <div class="rollback">
+        <span class="r">↩️</span>
+        <div><b>Git 自動幫你做這些</b>，還記得每版差在哪 —— 你只要說一句「幫我用 git 存一個版本」。</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico blue">🧩</span> 實際會遇到的狀況</h2>
+
+      <div class="story">
+        <div class="step ok">
+          <span class="e">✅</span>
+          <div class="t"><b>第一版功能確認 OK</b><span>先存一個版本</span></div>
+          <span class="ver">v1</span>
+        </div>
+        <div class="down">↓</div>
+        <div class="step edit">
+          <span class="e">🔧</span>
+          <div class="t"><b>做了一些優化</b><span>再存一個版本</span></div>
+          <span class="ver">v2</span>
+        </div>
+        <div class="down">↓</div>
+        <div class="step bad">
+          <span class="e">⚠️</span>
+          <div class="t"><b>測試發現原本 OK 的功能壞了</b><span>優化不小心把它改壞</span></div>
+          <span class="ver">v2</span>
+        </div>
+      </div>
+
+      <div class="fixline">
+        <span class="r">↩️</span>
+        <div><b>直接退回 v1</b> —— 原本好的功能馬上回來，不用從頭修、也不用重做。</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico orange">💬</span> 你最常用到的三句話</h2>
+
+      <div class="bubble">
+        <div class="txt">
+          <span class="say"><span class="lead">💾</span>幫我用 git 存一個版本</span>
+          <span class="hint">說明文字 Claude 會自己幫你寫</span>
+        </div>
+        <button onclick="copySay(this,'幫我用 git 存一個版本')">複製</button>
+      </div>
+
+      <div class="bubble">
+        <div class="txt"><span class="say"><span class="lead">↩️</span>幫我用 git 回到上一個版本</span></div>
+        <button onclick="copySay(this,'幫我用 git 回到上一個版本')">複製</button>
+      </div>
+
+      <div class="bubble">
+        <div class="txt"><span class="say"><span class="lead">🔍</span>幫我用 git 看之前存過哪些版本</span></div>
+        <button onclick="copySay(this,'幫我用 git 看之前存過哪些版本')">複製</button>
+      </div>
+
+      <div class="tip">
+        💡 <b>唯一的習慣：</b>做完一個段落，就跟 Claude 說一句「幫我用 git 存一個版本」。存得越勤，越不怕改壞。
+      </div>
+    </div>
+
+    <div class="next">
+      <div class="l"><span class="em">🚀</span>想聽懂工程師講的 <b>commit</b>、<b>push</b>？</div>
+      <button onclick="go('adv')">看進階版 →</button>
+    </div>
+
+  </div>
+
+  <!-- ===== 進階版 ===== -->
+  <div id="panel-adv" class="panel">
+
+    <div class="card">
+      <h2><span class="ico blue">🔤</span> 其實你已經在用了</h2>
+      <div class="keypoint">
+        初階版說的「<b>存一個版本</b>」＝ <b>commit</b>；「<b>上傳備份</b>」＝ <b>push</b>。只是換成工程師的講法。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico purple">💾</span> commit 與 push 差在哪</h2>
+
+      <div class="cp">
+        <div class="cpbox c">
+          <span class="big">💾</span>
+          <div class="word">commit</div>
+          <div class="zh">存一個版本</div>
+          <div class="viz">
+            <div class="u"><span class="e">📝</span>你改的東西</div>
+            <div class="ar">➜</div>
+            <div class="u"><span class="e">💾</span>存檔點</div>
+          </div>
+          <div class="chips"><span class="chip">v1</span><span class="chip">v2</span><span class="chip">v3</span></div>
+          <div class="note" style="margin-top:8px;">存在 💻 你自己的電腦</div>
+        </div>
+
+        <div class="cpbox p">
+          <span class="big">☁️</span>
+          <div class="word">push</div>
+          <div class="zh">上傳備份</div>
+          <div class="viz">
+            <div class="u"><span class="e">💻</span>你的電腦</div>
+            <div class="ar">➜</div>
+            <div class="u"><span class="e">☁️</span>雲端</div>
+          </div>
+          <div class="chips"><span class="chip">v1</span><span class="chip">v2</span><span class="chip">v3</span></div>
+          <div class="note" style="margin-top:8px;">整疊送上 GitHub</div>
+        </div>
+      </div>
+
+      <div class="pipe">
+        <div class="st"><span class="e">✏️</span><b>改東西</b></div>
+        <div class="ar">➜</div>
+        <div class="st c"><span class="e">💾</span><b>commit</b>存在你電腦</div>
+        <div class="ar">➜</div>
+        <div class="st p"><span class="e">☁️</span><b>push</b>上雲端備份</div>
+      </div>
+
+      <div class="warn">
+        <span class="w">⚠️</span>
+        <div>只 <b>commit</b> 沒 <b>push</b> ＝ 東西只在你電腦裡，<b>同事還看不到</b>。</div>
+      </div>
+
+      <div class="tip">
+        💡 可以先 <b>commit</b> 好幾次（存好幾版），做到一個段落再 <b>push</b> 一次就好。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico orange">💬</span> 進階兩句話</h2>
+
+      <div class="bubble">
+        <div class="txt">
+          <span class="say"><span class="lead">💾</span>幫我用 git commit 存一個版本</span>
+          <span class="hint">說明文字 Claude 會自己幫你寫</span>
+        </div>
+        <button onclick="copySay(this,'幫我用 git commit 存一個版本')">複製</button>
+      </div>
+
+      <div class="bubble">
+        <div class="txt">
+          <span class="say"><span class="lead">☁️</span>幫我用 git push 上傳到 GitHub</span>
+          <span class="hint">要先 commit 過才有東西可以上傳</span>
+        </div>
+        <button onclick="copySay(this,'幫我用 git push 上傳到 GitHub')">複製</button>
+      </div>
+    </div>
+
+    <div class="supp">
+      <h2><span>☁️</span> 那 GitHub 是什麼？ <span class="tagline">push 上去的地方</span></h2>
+      <div class="g-flow">
+        <div class="n"><span class="em">💻</span>存在你電腦<br>（Git）</div>
+        <div class="to">➜<small>push</small></div>
+        <div class="n"><span class="em">☁️</span>多備一份到雲端<br>（GitHub）</div>
+      </div>
+      <p>換電腦、多人一起做才需要。要用時跟 Claude 說：「<b>幫我用 git push 上傳到 GitHub</b>」就好。</p>
+    </div>
+
+    <div class="next">
+      <div class="l"><span class="em">🌱</span>只想「會用就好」？回初階版看三句話。</div>
+      <button onclick="go('basic')">← 回初階版</button>
+    </div>
+
+  </div>
+
+  <footer>小知識分享 · Git 入門 · 和 Claude Code 一起做</footer>
+
+</div>
+
+<script>
+  function go(which) {
+    var isBasic = which === 'basic';
+    document.getElementById('panel-basic').classList.toggle('on', isBasic);
+    document.getElementById('panel-adv').classList.toggle('on', !isBasic);
+    document.getElementById('tab-basic').classList.toggle('on', isBasic);
+    document.getElementById('tab-adv').classList.toggle('on', !isBasic);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function copySay(btn, text) {
+    navigator.clipboard.writeText(text).then(function () {
+      var old = btn.textContent;
+      btn.textContent = "已複製 ✓";
+      setTimeout(function () { btn.textContent = old; }, 1400);
+    });
+  }
+</script>
+</body>
+</html>
